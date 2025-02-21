@@ -48,7 +48,7 @@ int bin_dim;
 const int NUM_TILES_DIM = 16;
 const int NUM_TILES = NUM_TILES_DIM*NUM_TILES_DIM;;
 const int GRID_DIM = (NUM_TILES_DIM + 2);
-const int GRID_SIZE = GRID_DIM*GRID_DIM;
+const int GRID_SIZE = GRID_DIM*GRID_DIM + 2*GRID_DIM;
 std::array<std::vector<int>, GRID_SIZE> particle_bins;
 int bin_cnt[GRID_SIZE] = {0};
 
@@ -87,30 +87,59 @@ void add_neighbors(std::vector<int>* neighbors, int x, int y) {
 static inline int get_tile_ind(int x, int y) {
 	int row = floor(y/bin_dim);
 	int col = floor(x/bin_dim);
-	return row*GRID_DIM + col + 1;
+	return row*GRID_DIM + GRID_DIM + col + 1;
+}
+
+static inline void apply_force_tile(particle_t* parts, particle_t p, std::vector<int> tile, int tile_num_parts) {
+	for (int x = 0; x < tile_num_parts; x++) {
+		apply_force(p, parts[tile[x]]);
+	}
 }
 
 void simulate_one_step(particle_t* parts, int num_parts, double size) {
 	partition_particles(parts, num_parts, size);;
 
 	// Compute Forces
+/*
 	for (int tile = 0; tile < NUM_TILES; tile++) {
 		for (int p = 0; p < bin_cnt[tile]; p++) {
 			particle_t particle_A = parts[particle_bins[tile][p]];
+			particle_A.x = 0;
+			particle_A.y = 0;
 			for (int q = 0; q < bin_cnt[tile]; q++) {
 				particle_t particle_B = parts[particle_bins[tile][q]];
 				apply_force(particle_A, particle_B);
 			}
 		}
 	}
-
+*/
 	  //  for (int i = 0; i < num_parts; ++i) {
 		//		int grid_ind = get_tile_ind(parts[i].x, parts[i].y);
 		//
 		//	}
 
-	//    for (int i = 0; i < num_parts; ++i) {
-	//        parts[i].ax = parts[i].ay = 0;
+const int neighbor0_off = -GRID_DIM - 1; // Upper left
+const int neighbor1_off = -GRID_DIM; 		// Upper
+const int neighbor2_off = -GRID_DIM + 1; // Upper right
+const int neighbor3_off = - 1; 						// Immediate left
+const int self_off = 0;
+const int neighbor5_off =  1; 						// Immediate right
+const int neighbor6_off = GRID_DIM - 1; 			// Lower left
+const int neighbor7_off = GRID_DIM; 			// Bottom
+const int neighbor8_off = GRID_DIM + 1; 	// Bottom right
+
+	    for (int i = 0; i < num_parts; ++i) {
+					int tile_ind = get_tile_ind(parts[i].x, parts[i].y);
+	        parts[i].ax = parts[i].ay = 0; 	// Clear acceleration
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind], bin_cnt[tile_ind]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor0_off], bin_cnt[tile_ind + neighbor0_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor1_off], bin_cnt[tile_ind + neighbor1_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor2_off], bin_cnt[tile_ind + neighbor2_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor3_off], bin_cnt[tile_ind + neighbor3_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor5_off], bin_cnt[tile_ind + neighbor5_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor6_off], bin_cnt[tile_ind + neighbor6_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor7_off], bin_cnt[tile_ind + neighbor7_off]);
+					apply_force_tile(parts, parts[i], particle_bins[tile_ind + neighbor8_off], bin_cnt[tile_ind + neighbor8_off]);
 	//
 	//				int row = floor(parts[i].y/bin_dim);
 	//				int col = floor(parts[i].x/bin_dim);
@@ -146,7 +175,7 @@ void simulate_one_step(particle_t* parts, int num_parts, double size) {
 	//        for (int j = 0; j < neighbor_cnt; ++j) {
 	//            apply_force(parts[i], parts[neighbors[j]]);
 	//        }
-	//    }
+	    }
 
 
 	// Move Particles
