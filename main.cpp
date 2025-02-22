@@ -103,6 +103,9 @@ int main(int argc, char** argv) {
         return 0;
     }
 
+
+		std::ofstream initfsave("init.out");
+
     // Open Output File
     char* savename = find_string_option(argc, argv, "-o", nullptr);
     std::ofstream fsave(savename);
@@ -110,22 +113,29 @@ int main(int argc, char** argv) {
     // Initialize Particles
     int num_parts = find_int_arg(argc, argv, "-n", 1000);
     int part_seed = find_int_arg(argc, argv, "-s", 0);
+		int steps_cnt = find_int_arg(argc, argv, "-q", nsteps);
+		bool version  = find_int_arg(argc, argv, "-v", false);
     double size = sqrt(density * num_parts);
+
+		printf("steps_cnt: %d\n", steps_cnt);
 
     particle_t* parts = new particle_t[num_parts];
 
     init_particles(parts, num_parts, size, part_seed);
+
 
     // Algorithm
     auto start_time = std::chrono::steady_clock::now();
 
     init_simulation(parts, num_parts, size);
 
+
 #ifdef _OPENMP
 #pragma omp parallel default(shared)
 #endif
     {
-        for (int step = 0; step < nsteps; ++step) {
+        //for (int step = 0; step < nsteps; ++step) {
+        for (int step = 0; step < steps_cnt; ++step) {
             simulate_one_step(parts, num_parts, size);
 
             // Save state if necessary
@@ -133,7 +143,7 @@ int main(int argc, char** argv) {
 #pragma omp master
 #endif
             if (fsave.good() && (step % savefreq) == 0) {
-                save(fsave, parts, num_parts, size);
+								save(fsave, parts, num_parts, size);
             }
         }
     }
