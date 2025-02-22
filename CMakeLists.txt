@@ -27,8 +27,12 @@ if (NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 endif ()
 
 add_executable(serial main.cpp serial.cpp common.h)
+add_executable(org_serial main.cpp serial.cpp common.h)
 
 add_executable(openmp main.cpp openmp.cpp common.h)
+#/add_definitions(-DORG=$(ORGVAL))
+target_compile_options(serial PRIVATE  "-D ORG=0")
+target_compile_options(org_serial PRIVATE  "-D ORG=1")
 target_link_libraries(openmp PRIVATE OpenMP::OpenMP_CXX)
 
 # Copy the job scripts
