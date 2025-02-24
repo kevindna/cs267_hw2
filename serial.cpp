@@ -82,7 +82,7 @@ void init_simulation(particle_t* parts, int num_parts, double size) {
 
 	// Reserve size to prevent to many dynamic allocation (memcpy calls)
 	for (int x = 0; x < GRID_SIZE; x++) {
-		tiles[x].reserve(num_parts/4);
+		tiles[x].reserve(num_parts/25);
 	}
 
 }
@@ -101,32 +101,22 @@ void partition_particles(particle_t* p, int num_p, double size) {
 
 	for(int i = 0; i < GRID_SIZE; i++) {
 		tiles[i].clear();
-		bin_cnt[i] = 0;
 	}
 
 	for(int i = 0; i < num_p; i++) {
 		ind = get_tile_ind(p[i].x, p[i].y);
 		tiles[ind].push_back(p + i);
-		bin_cnt[ind]++;
 	}
 
 //printf("Tile particle count: %d (%d)\n", ind, bin_cnt[ind]);
 
-/*
-	for(int r = 0; r < GRID_DIM; r++) {
-		rows[r].clear();
-		for(int c = 0; c < GRID_DIM; c++) {
-			rows[r].insert(rows[r].end(), tiles[r*GRID_DIM + c].begin(), tiles[r*GRID_DIM + c].end());
-		}
-	}
-*/
 }
 
 /*
  * Runt he apply_force function across an entire tile
  *
  * */
-static inline void apply_force_tile(particle_t& p, std::vector<particle_t *> tile) {
+static inline void apply_force_tile(particle_t& p, std::vector<particle_t *>& tile) {
 	for (int x = 0; x < tile.size(); x++) {
 		apply_force(p, *tile[x]);
 	}
